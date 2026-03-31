@@ -9,11 +9,13 @@ rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     project.evaluationDependsOn(':app')
+}
 
-    // Fix for third-party libraries namespace issue
-    afterEvaluate {
+// Fix for third-party libraries namespace issue
+subprojects {
+    afterEvaluate { Project project ->
         if (project.hasProperty("android")) {
-            android {
+            project.android {
                 if (namespace == null || namespace.isEmpty()) {
                     namespace "com.example.${project.name.replaceAll('-', '_')}"
                 }
