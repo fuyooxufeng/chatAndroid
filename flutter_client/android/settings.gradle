@@ -23,14 +23,3 @@ plugins {
 }
 
 include ":app"
-
-// Configure all subprojects to fix namespace issues
-gradle.beforeProject { project ->
-    if (project.hasProperty("android")) {
-        project.android {
-            if (it.hasProperty("namespace") && (namespace == null || namespace.isEmpty())) {
-                namespace "com.example.${project.name.replaceAll('-', '_')}"
-            }
-        }
-    }
-}

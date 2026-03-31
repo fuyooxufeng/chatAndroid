@@ -6,9 +6,22 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     project.evaluationDependsOn(':app')
+}
+
+// Fix namespace for third-party plugins
+subprojects {
+    afterEvaluate { project ->
+        if (project.extensions.findByName("android")) {
+            if (project.android.hasProperty("namespace") &&
+                (project.android.namespace == null || project.android.namespace.isEmpty())) {
+                project.android.namespace = "com.example.${project.name.replace('-', '_')}"
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
