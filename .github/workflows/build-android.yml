@@ -3,9 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   build-android:
@@ -31,23 +29,13 @@ jobs:
         run: flutter pub get
         working-directory: ./flutter_client
 
-      - name: Build APK (Release)
+      - name: Build APK
         run: flutter build apk --release
         working-directory: ./flutter_client
 
-      - name: Upload Release APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
+          name: chat-app-apk
           path: flutter_client/build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Create Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
-          files: |
-            flutter_client/build/app/outputs/flutter-apk/app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if-no-files-found: error
