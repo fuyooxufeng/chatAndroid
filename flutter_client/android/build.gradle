@@ -3,16 +3,6 @@ allprojects {
         google()
         mavenCentral()
     }
-
-    // Fix namespace for third-party plugins
-    afterEvaluate { project ->
-        if (project.extensions.findByName("android")) {
-            if (project.android.hasProperty("namespace") &&
-                (project.android.namespace == null || project.android.namespace.isEmpty())) {
-                project.android.namespace = "com.example.${project.name.replace('-', '_')}"
-            }
-        }
-    }
 }
 
 rootProject.buildDir = '../build'
