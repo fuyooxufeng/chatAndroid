@@ -53,6 +53,20 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    // 修复第三方库的命名空间问题
+    subprojects {
+        afterEvaluate { project ->
+            if (project.hasProperty("android")) {
+                project.android {
+                    if (namespace == null || namespace.isEmpty()) {
+                        namespace project.group
+                    }
+                    compileSdkVersion 34
+                }
+            }
+        }
+    }
 }
 
 flutter {
