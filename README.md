@@ -105,3 +105,4 @@ flutter run
 - `client.py` - Python GUI 桌面客户端
 - `config.json` - 客户端配置文件（服务器地址和端口）
 - `requirements.txt` - Python 依赖列表
+# chatAndrod
