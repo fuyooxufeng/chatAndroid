@@ -3,17 +3,8 @@ allprojects {
         google()
         mavenCentral()
     }
-}
 
-rootProject.buildDir = '../build'
-
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-    project.evaluationDependsOn(':app')
-}
-
-// Fix namespace for third-party plugins
-subprojects {
+    // Fix namespace for third-party plugins
     afterEvaluate { project ->
         if (project.extensions.findByName("android")) {
             if (project.android.hasProperty("namespace") &&
@@ -22,6 +13,12 @@ subprojects {
             }
         }
     }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
