@@ -18,8 +18,19 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.1.0" apply false
+    id "com.android.application" version "7.3.0" apply false
     id "org.jetbrains.kotlin.android" version "1.8.10" apply false
 }
 
 include ":app"
+
+// Configure all subprojects to fix namespace issues
+gradle.beforeProject { project ->
+    if (project.hasProperty("android")) {
+        project.android {
+            if (it.hasProperty("namespace") && (namespace == null || namespace.isEmpty())) {
+                namespace "com.example.${project.name.replaceAll('-', '_')}"
+            }
+        }
+    }
+}
