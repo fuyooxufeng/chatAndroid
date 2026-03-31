@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sim_info/sim_info.dart';
+import 'package:mobile_number/mobile_number.dart';
 
 class ContactsHelper {
   // 缓存通讯录数据
@@ -12,14 +12,25 @@ class ContactsHelper {
     try {
       // 请求电话权限
       var status = await Permission.phone.request();
-      if (status.isGranted) {
-        String? phoneNumber = await SimInfo.getPhoneNumber;
-        // 清理手机号（去掉空格、横线等）
+      if (!status.isGranted) {
+        print('没有电话权限');
+        return null;
+      }
+
+      // 使用 mobile_number 包获取手机号
+      final List<SimCard>? simCards = await MobileNumber.getSimCards;
+
+      if (simCards != null && simCards.isNotEmpty) {
+        // 返回第一张 SIM 卡的手机号
+        String? phoneNumber = simCards.first.number;
         if (phoneNumber != null && phoneNumber.isNotEmpty) {
           phoneNumber = _cleanPhoneNumber(phoneNumber);
+          print('获取到手机号: $phoneNumber');
           return phoneNumber;
         }
       }
+
+      print('无法获取手机号，simCards: $simCards');
     } catch (e) {
       print('获取手机号失败: $e');
     }
