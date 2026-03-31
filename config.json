@@ -1,0 +1,12 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 8765,
+    "ws_protocol": "ws"
+  },
+  "user": {
+    "phone": "",
+    "password": "aaaaaa"
+  },
+  "_comment": "配置说明：修改 server 连接不同服务器；填写 user.phone 和 user.password 实现自动登录"
+}
