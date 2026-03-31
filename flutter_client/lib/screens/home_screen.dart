@@ -14,6 +14,24 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF075E54),
         foregroundColor: Colors.white,
         actions: [
+          Consumer<ChatProvider>(
+            builder: (context, provider, child) {
+              if (!provider.isConnected) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {

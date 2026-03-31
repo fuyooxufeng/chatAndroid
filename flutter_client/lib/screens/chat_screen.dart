@@ -52,7 +52,12 @@ class _ChatScreenState extends State<ChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title),
-                if (!provider.isConnected)
+                if (!provider.isConnected && provider.isReconnecting)
+                  const Text(
+                    '正在重新连接...',
+                    style: TextStyle(fontSize: 12, color: Colors.orange),
+                  )
+                else if (!provider.isConnected)
                   const Text(
                     '连接中...',
                     style: TextStyle(fontSize: 12, color: Colors.white70),

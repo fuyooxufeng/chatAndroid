@@ -11,13 +11,36 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late ChatProvider _provider;
+
+  @override
+  void initState() {
+    super.initState();
+    _provider = ChatProvider();
+    // 检查是否有保存的登录信息
+    _checkSavedLogin();
+  }
+
+  Future<void> _checkSavedLogin() async {
+    final hasSavedLogin = await _provider.checkSavedLogin();
+    if (hasSavedLogin) {
+      // 自动连接
+      await _provider.reconnectWithSavedInfo();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ChatProvider(),
+    return ChangeNotifierProvider.value(
+      value: _provider,
       child: MaterialApp(
         title: 'Chat App',
         debugShowCheckedModeBanner: false,
@@ -30,8 +53,59 @@ class MyApp extends StatelessWidget {
         ),
         home: Consumer<ChatProvider>(
           builder: (context, provider, child) {
+            if (provider.isReconnecting) {
+              return const ReconnectingScreen();
+            }
             return provider.isLoggedIn ? const HomeScreen() : const LoginScreen();
           },
+        ),
+      ),
+    );
+  }
+}
+
+// 重连中界面
+class ReconnectingScreen extends StatelessWidget {
+  const ReconnectingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF128C7E), Color(0xFF075E54)],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.chat_bubble,
+                size: 80,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Chat App',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 48),
+              const CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 16),
+              const Text(
+                '正在重新连接...',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ],
+          ),
         ),
       ),
     );

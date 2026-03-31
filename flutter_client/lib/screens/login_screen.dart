@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
-import '../services/config_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,28 +14,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-    // 检查是否配置了自动登录
-    final configPhone = AppConfig.userPhone;
-    if (configPhone.isNotEmpty) {
-      // 自动登录
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _autoLogin(configPhone);
-      });
-    }
-  }
-
-  @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
-  }
-
-  void _autoLogin(String phone) {
-    setState(() => _isLoading = true);
-    final provider = context.read<ChatProvider>();
-    provider.connect(phone);
   }
 
   void _login() async {
@@ -58,50 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 如果正在自动登录，显示加载界面
-    final configPhone = AppConfig.userPhone;
-    if (configPhone.isNotEmpty && _isLoading) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF128C7E), Color(0xFF075E54)],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.chat_bubble,
-                  size: 80,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Chat App',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                const CircularProgressIndicator(color: Colors.white),
-                const SizedBox(height: 16),
-                Text(
-                  '正在以 $configPhone 登录...',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
