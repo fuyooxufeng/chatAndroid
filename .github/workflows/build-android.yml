@@ -5,14 +5,11 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./flutter_client
 
     steps:
       - name: Checkout code
@@ -32,18 +29,11 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Build APK (Debug)
-        run: flutter build apk --debug
+        working-directory: ./flutter_client
 
       - name: Build APK (Release)
         run: flutter build apk --release
-
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug-apk
-          path: flutter_client/build/app/outputs/flutter-apk/app-debug.apk
+        working-directory: ./flutter_client
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
