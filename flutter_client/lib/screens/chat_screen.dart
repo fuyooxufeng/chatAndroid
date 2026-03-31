@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/contacts_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -43,7 +44,14 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (context, provider, child) {
-        final title = provider.isGroupChat ? '群聊' : provider.selectedChat ?? '';
+        // 获取显示名称
+        String title;
+        if (provider.isGroupChat) {
+          title = '群聊';
+        } else {
+          final phone = provider.selectedChat ?? '';
+          title = ContactsHelper.getContactName(phone);
+        }
         final messages = provider.currentMessages;
 
         return Scaffold(
@@ -87,12 +95,17 @@ class _ChatScreenState extends State<ChatScreen> {
                           itemBuilder: (context, index) {
                             final msg = messages[index];
                             final isMe = msg.from == provider.phone;
+                            // 获取发送者显示名称
+                            final senderName = isMe
+                                ? '你'
+                                : ContactsHelper.getContactName(msg.from);
 
                             return _buildMessageBubble(
-                              msg.from,
+                              senderName,
                               msg.content,
                               msg.time,
                               isMe,
+                              msg.from,
                             );
                           },
                         ),
@@ -148,7 +161,11 @@ class _ChatScreenState extends State<ChatScreen> {
     String content,
     String time,
     bool isMe,
+    String phoneNumber,
   ) {
+    // 检查是否在通讯录中
+    final isInContacts = ContactsHelper.isInContacts(phoneNumber);
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -172,13 +189,30 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (!isMe)
-              Text(
-                from,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF128C7E),
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    from,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isInContacts
+                          ? const Color(0xFF128C7E)
+                          : Colors.grey[600],
+                      fontWeight:
+                          isInContacts ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  if (isInContacts)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF128C7E),
+                        size: 12,
+                      ),
+                    ),
+                ],
               ),
             Text(
               content,

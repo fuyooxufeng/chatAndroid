@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/contacts_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,11 +13,39 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
   bool _isLoading = false;
+  bool _isGettingPhoneNumber = false;
+  String? _autoPhoneNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    _tryGetPhoneNumber();
+  }
 
   @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  /// 尝试获取本机手机号
+  Future<void> _tryGetPhoneNumber() async {
+    setState(() => _isGettingPhoneNumber = true);
+
+    // 尝试获取手机号
+    String? phoneNumber = await ContactsHelper.getPhoneNumber();
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      setState(() {
+        _autoPhoneNumber = phoneNumber;
+        _phoneController.text = phoneNumber;
+      });
+    }
+
+    // 同时加载通讯录
+    await ContactsHelper.loadContacts();
+
+    setState(() => _isGettingPhoneNumber = false);
   }
 
   void _login() async {
@@ -79,10 +108,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: '手机号',
-                          prefixIcon: Icon(Icons.phone),
-                          border: OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.phone),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: _isGettingPhoneNumber
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : _autoPhoneNumber != null
+                                  ? const Icon(Icons.check_circle,
+                                      color: Colors.green)
+                                  : null,
+                          helperText: _autoPhoneNumber != null
+                              ? '已自动获取本机号码'
+                              : '无法自动获取，请手动输入',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -104,7 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             foregroundColor: Colors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
                               : const Text(
                                   '登录',
                                   style: TextStyle(fontSize: 18),

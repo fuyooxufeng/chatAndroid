@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/contacts_service.dart';
 import 'chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -30,6 +31,16 @@ class HomeScreen extends StatelessWidget {
                 );
               }
               return const SizedBox.shrink();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.contacts),
+            onPressed: () async {
+              // 刷新通讯录
+              await ContactsHelper.refreshContacts();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('通讯录已刷新')),
+              );
             },
           ),
           IconButton(
@@ -83,23 +94,50 @@ class HomeScreen extends StatelessWidget {
                         itemCount: users.length,
                         itemBuilder: (context, index) {
                           final user = users[index];
+                          // 获取通讯录中的名字
+                          final displayName =
+                              ContactsHelper.getContactName(user);
+                          final isInContacts =
+                              ContactsHelper.isInContacts(user);
+
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Colors.grey[300],
+                              backgroundColor: isInContacts
+                                  ? const Color(0xFF128C7E)
+                                  : Colors.grey[300],
                               child: Text(
-                                user[0].toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.black54,
+                                displayName[0].toUpperCase(),
+                                style: TextStyle(
+                                  color: isInContacts
+                                      ? Colors.white
+                                      : Colors.black54,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                             title: Text(
-                              user,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              displayName,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold),
                             ),
-                            subtitle: const Text('在线'),
-                            trailing: const Icon(Icons.chevron_right),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('在线'),
+                                if (isInContacts)
+                                  Text(
+                                    user,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            trailing: isInContacts
+                                ? const Icon(Icons.check_circle,
+                                    color: Color(0xFF128C7E), size: 20)
+                                : const Icon(Icons.chevron_right),
                             onTap: () {
                               provider.selectChat(user);
                               Navigator.push(
