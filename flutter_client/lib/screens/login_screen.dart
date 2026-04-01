@@ -14,13 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
   bool _isLoading = false;
   bool _isGettingPhoneNumber = false;
-  String? _autoPhoneNumber;
-
-  @override
-  void initState() {
-    super.initState();
-    _tryGetPhoneNumber();
-  }
 
   @override
   void dispose() {
@@ -28,24 +21,28 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// 尝试获取本机手机号
-  Future<void> _tryGetPhoneNumber() async {
+  /// 手动获取本机手机号
+  Future<void> _getPhoneNumber() async {
     setState(() => _isGettingPhoneNumber = true);
 
-    // 尝试获取手机号
     String? phoneNumber = await ContactsHelper.getPhoneNumber();
+
+    setState(() {
+      _isGettingPhoneNumber = false;
+    });
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
       setState(() {
-        _autoPhoneNumber = phoneNumber;
         _phoneController.text = phoneNumber;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已读取本机号码')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('无法读取本机号码，请手动输入')),
+      );
     }
-
-    // 同时加载通讯录
-    await ContactsHelper.loadContacts();
-
-    setState(() => _isGettingPhoneNumber = false);
   }
 
   void _login() async {
@@ -123,13 +120,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 )
-                              : _autoPhoneNumber != null
-                                  ? const Icon(Icons.check_circle,
-                                      color: Colors.green)
-                                  : null,
-                          helperText: _autoPhoneNumber != null
-                              ? '已自动获取本机号码'
-                              : '无法自动获取，请手动输入',
+                              : IconButton(
+                                  icon: const Icon(Icons.sim_card),
+                                  tooltip: '读取本机号码',
+                                  onPressed: _getPhoneNumber,
+                                ),
+                          helperText: '点击右侧图标读取本机号码',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // 读取本机号码按钮（大按钮）
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _isGettingPhoneNumber ? null : _getPhoneNumber,
+                          icon: _isGettingPhoneNumber
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.sim_card_download),
+                          label: Text(
+                            _isGettingPhoneNumber ? '读取中...' : '读取本机号码',
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF128C7E),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),

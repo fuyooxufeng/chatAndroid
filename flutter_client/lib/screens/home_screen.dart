@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../services/contacts_service.dart';
 import 'chat_screen.dart';
+import 'contacts_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -35,11 +36,13 @@ class HomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.contacts),
-            onPressed: () async {
-              // 刷新通讯录
-              await ContactsHelper.refreshContacts();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('通讯录已刷新')),
+            onPressed: () {
+              // 打开通讯录页面
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ContactsScreen(),
+                ),
               );
             },
           ),
@@ -106,7 +109,9 @@ class HomeScreen extends StatelessWidget {
                                   ? const Color(0xFF128C7E)
                                   : Colors.grey[300],
                               child: Text(
-                                displayName[0].toUpperCase(),
+                                displayName.isNotEmpty
+                                    ? displayName[0].toUpperCase()
+                                    : '?',
                                 style: TextStyle(
                                   color: isInContacts
                                       ? Colors.white
