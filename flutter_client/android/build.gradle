@@ -4,13 +4,13 @@ allprojects {
         mavenCentral()
     }
 
-    // 统一 Kotlin 版本
+    // Force consistent Kotlin version across all dependencies
     configurations.all {
         resolutionStrategy {
-            force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
-            force 'org.jetbrains.kotlin:kotlin-reflect:1.8.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+            force 'org.jetbrains.kotlin:kotlin-reflect:1.9.22'
         }
     }
 }
@@ -18,6 +18,8 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
     project.evaluationDependsOn(':app')
 }
 

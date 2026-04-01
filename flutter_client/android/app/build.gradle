@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.chat_app"
-    compileSdkVersion 33
+    compileSdk 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -42,8 +42,8 @@ android {
 
     defaultConfig {
         applicationId "com.example.chat_app"
-        minSdkVersion 21
-        targetSdkVersion 33
+        minSdk 21
+        targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
