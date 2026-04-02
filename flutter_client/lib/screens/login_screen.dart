@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
-import '../services/contacts_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,36 +13,16 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
   bool _isLoading = false;
-  bool _isGettingPhoneNumber = false;
+  bool _isUniLoginLoading = false;
+
+  // Method Channel for uni login
+  static const MethodChannel _uniLoginChannel =
+      MethodChannel('com.example.chat_app/uni_login');
 
   @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
-  }
-
-  /// 手动获取本机手机号
-  Future<void> _getPhoneNumber() async {
-    setState(() => _isGettingPhoneNumber = true);
-
-    String? phoneNumber = await ContactsHelper.getPhoneNumber();
-
-    setState(() {
-      _isGettingPhoneNumber = false;
-    });
-
-    if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      setState(() {
-        _phoneController.text = phoneNumber;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已读取本机号码')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法读取本机号码，请手动输入')),
-      );
-    }
   }
 
   void _login() async {
@@ -60,6 +40,46 @@ class _LoginScreenState extends State<LoginScreen> {
     await provider.connect(phone);
 
     setState(() => _isLoading = false);
+  }
+
+  /// uni 一键登录
+  Future<void> _uniLogin() async {
+    setState(() => _isUniLoginLoading = true);
+
+    try {
+      final result = await _uniLoginChannel.invokeMethod<Map>('uniLogin');
+
+      if (result != null && result['success'] == true) {
+        final phoneNumber = result['phoneNumber'] as String?;
+        if (phoneNumber != null && phoneNumber.isNotEmpty) {
+          setState(() {
+            _phoneController.text = phoneNumber;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('一键登录成功')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('获取手机号失败')),
+          );
+        }
+      } else {
+        final errorMsg = result?['message'] as String? ?? '一键登录失败';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
+    } on PlatformException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('一键登录错误: ${e.message}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('一键登录异常: $e')),
+      );
+    } finally {
+      setState(() => _isUniLoginLoading = false);
+    }
   }
 
   @override
@@ -105,50 +125,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: '手机号',
-                          prefixIcon: const Icon(Icons.phone),
-                          border: const OutlineInputBorder(),
-                          suffixIcon: _isGettingPhoneNumber
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                )
-                              : IconButton(
-                                  icon: const Icon(Icons.sim_card),
-                                  tooltip: '读取本机号码',
-                                  onPressed: _getPhoneNumber,
-                                ),
-                          helperText: '点击右侧图标读取本机号码',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // 读取本机号码按钮（大按钮）
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: _isGettingPhoneNumber ? null : _getPhoneNumber,
-                          icon: _isGettingPhoneNumber
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.sim_card_download),
-                          label: Text(
-                            _isGettingPhoneNumber ? '读取中...' : '读取本机号码',
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF128C7E),
-                          ),
+                          prefixIcon: Icon(Icons.phone),
+                          border: OutlineInputBorder(),
+                          hintText: '请输入手机号',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -176,6 +157,41 @@ class _LoginScreenState extends State<LoginScreen> {
                                   '登录',
                                   style: TextStyle(fontSize: 18),
                                 ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // uni 一键登录按钮
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          onPressed: _isUniLoginLoading ? null : _uniLogin,
+                          icon: _isUniLoginLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.phone_android),
+                          label: Text(
+                            _isUniLoginLoading ? '获取中...' : '本机号码一键登录',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF25D366),
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '使用运营商一键登录获取本机号码',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 11,
                         ),
                       ),
                     ],
